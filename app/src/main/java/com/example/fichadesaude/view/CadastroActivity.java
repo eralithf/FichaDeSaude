@@ -1,7 +1,6 @@
 package com.example.fichadesaude.view;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,12 +17,12 @@ public class CadastroActivity extends Activity {
     private Button btnSalvar;
 
     private FichaDbHelper dbHelper;
+    private long fichaId = -1; // Para editar, receber o id
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cadastro);
-
 
         edtNome = findViewById(R.id.edtNome);
         edtIdade = findViewById(R.id.edtIdade);
@@ -34,10 +33,15 @@ public class CadastroActivity extends Activity {
 
         dbHelper = new FichaDbHelper(this);
 
+
+        fichaId = getIntent().getLongExtra("fichaId", -1);
+        if (fichaId != -1) {
+            carregarFichaParaEdicao(fichaId);
+        }
+
         btnSalvar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 String nome = edtNome.getText().toString().trim();
                 String idadeStr = edtIdade.getText().toString().trim();
                 String pesoStr = edtPeso.getText().toString().trim();
@@ -61,25 +65,48 @@ public class CadastroActivity extends Activity {
                     return;
                 }
 
-
                 FichaSaude ficha = new FichaSaude(nome, idade, peso, altura, pressao);
 
+                if (fichaId == -1) {
 
-                long id = dbHelper.inserirFicha(ficha);
-
-                if (id > 0) {
-                    Toast.makeText(CadastroActivity.this, "Ficha salva com sucesso!", Toast.LENGTH_SHORT).show();
-
-
-                    edtNome.setText("");
-                    edtIdade.setText("");
-                    edtPeso.setText("");
-                    edtAltura.setText("");
-                    edtPressao.setText("");
+                    long id = dbHelper.inserirFicha(ficha);
+                    if (id > 0) {
+                        Toast.makeText(CadastroActivity.this, "Ficha salva com sucesso!", Toast.LENGTH_SHORT).show();
+                        limparCampos();
+                    } else {
+                        Toast.makeText(CadastroActivity.this, "Erro ao salvar ficha.", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(CadastroActivity.this, "Erro ao salvar ficha.", Toast.LENGTH_SHORT).show();
+
+                    ficha.setId(fichaId); // importante para atualizar pelo id
+                    int linhasAfetadas = dbHelper.atualizarFicha(ficha);
+                    if (linhasAfetadas > 0) {
+                        Toast.makeText(CadastroActivity.this, "Ficha atualizada com sucesso!", Toast.LENGTH_SHORT).show();
+                        finish(); // volta para a tela anterior
+                    } else {
+                        Toast.makeText(CadastroActivity.this, "Erro ao atualizar ficha.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
+    }
+
+    private void carregarFichaParaEdicao(long id) {
+        FichaSaude ficha = dbHelper.getFichaById(id);
+        if (ficha != null) {
+            edtNome.setText(ficha.getNome());
+            edtIdade.setText(String.valueOf(ficha.getIdade()));
+            edtPeso.setText(String.valueOf(ficha.getPeso()));
+            edtAltura.setText(String.valueOf(ficha.getAltura()));
+            edtPressao.setText(ficha.getPressao());
+        }
+    }
+
+    private void limparCampos() {
+        edtNome.setText("");
+        edtIdade.setText("");
+        edtPeso.setText("");
+        edtAltura.setText("");
+        edtPressao.setText("");
     }
 }

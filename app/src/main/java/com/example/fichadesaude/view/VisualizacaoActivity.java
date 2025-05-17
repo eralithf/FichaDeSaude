@@ -17,7 +17,7 @@ public class VisualizacaoActivity extends AppCompatActivity {
     private Button btnEditar;
 
     private FichaDbHelper dbHelper;
-    private int fichaId;
+    private long fichaId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,24 +35,23 @@ public class VisualizacaoActivity extends AppCompatActivity {
 
         dbHelper = new FichaDbHelper(this);
 
+        fichaId = getIntent().getLongExtra("fichaId", -1);
 
-        fichaId = getIntent().getIntExtra("ficha_id", -1);
         if (fichaId != -1) {
             mostrarFicha(fichaId);
         } else {
-
             finish();
         }
 
         btnEditar.setOnClickListener(v -> {
             Intent intent = new Intent(VisualizacaoActivity.this, CadastroActivity.class);
-            intent.putExtra("ficha_id", fichaId);
+            intent.putExtra("fichaId", fichaId);
             startActivity(intent);
             finish();
         });
     }
 
-    private void mostrarFicha(int id) {
+    private void mostrarFicha(long id) {
         FichaSaude ficha = dbHelper.getFichaById(id);
         if (ficha != null) {
             txtNome.setText("Nome: " + ficha.getNome());

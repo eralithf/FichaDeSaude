@@ -29,7 +29,6 @@ public class FichaDbHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
@@ -43,10 +42,8 @@ public class FichaDbHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE);
     }
 
-
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
@@ -116,8 +113,31 @@ public class FichaDbHelper extends SQLiteOpenHelper {
                 lista.add(ficha);
             } while (cursor.moveToNext());
         }
+
         cursor.close();
         db.close();
         return lista;
+    }
+
+
+    public int atualizarFicha(FichaSaude ficha) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues valores = new ContentValues();
+
+        valores.put(COLUMN_NOME, ficha.getNome());
+        valores.put(COLUMN_IDADE, ficha.getIdade());
+        valores.put(COLUMN_PESO, ficha.getPeso());
+        valores.put(COLUMN_ALTURA, ficha.getAltura());
+        valores.put(COLUMN_PRESSAO, ficha.getPressao());
+
+        int linhasAfetadas = db.update(
+                TABLE_NAME,
+                valores,
+                COLUMN_ID + " = ?",
+                new String[]{String.valueOf(ficha.getId())}
+        );
+
+        db.close();
+        return linhasAfetadas;
     }
 }
